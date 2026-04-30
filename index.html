@@ -1233,10 +1233,16 @@ window.SCORM12 = (function(){
       }
       /* Hauteur excessive → max-height contraint + overflow:hidden */
       if (oob.indexOf('B') >= 0 || oob.indexOf('T') >= 0) {
-        var availH = sr.bottom - r.top;
-        if (availH > 0 && r.height > availH) {
-          el.style.maxHeight = Math.max(40, availH - 8) + 'px';
-          el.style.overflow = 'hidden';
+        /* Contenu en flux normal dans .screen : le scroll de .screen gère le
+           débordement vertical — forcer overflow:hidden casserait le scroll */
+        var inScreenFlow = el.closest && el.closest('.screen') &&
+                           cs.position !== 'absolute' && cs.position !== 'fixed' && cs.position !== 'sticky';
+        if (!inScreenFlow) {
+          var availH = sr.bottom - r.top;
+          if (availH > 0 && r.height > availH) {
+            el.style.maxHeight = Math.max(40, availH - 8) + 'px';
+            el.style.overflow = 'hidden';
+          }
         }
         if (cs.position === 'absolute' || cs.position === 'fixed') {
           if (oob.indexOf('B') >= 0) el.style.bottom = '0';
