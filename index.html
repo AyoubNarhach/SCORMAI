@@ -31,16 +31,17 @@
     transform: translate(-50%, -50%) scale(var(--shell-scale, 1));
     transform-origin: center center;
     display: grid; grid-template-rows: 56px 1fr 64px;
-    overflow: hidden;
+    overflow: visible;
+    clip-path: inset(0);
     opacity: 0;
     transition: opacity 0.15s ease;
     background: linear-gradient(160deg, #ffffff 0%, #eef5f6 60%, #d8ebec 100%);
   }
-  .stage { position:relative; clip-path: inset(0); min-height:0; min-width:0; }
+  .stage { position:relative; overflow: visible; clip-path: inset(0); min-height:0; min-width:0; }
   .screen {
     position:absolute; inset:0;
     padding: 28px 44px;
-    overflow-y: auto;
+    overflow-y: scroll;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     overscroll-behavior: contain;
