@@ -31,17 +31,16 @@
     transform: translate(-50%, -50%) scale(var(--shell-scale, 1));
     transform-origin: center center;
     display: grid; grid-template-rows: 56px 1fr 64px;
-    overflow: visible;
-    clip-path: inset(0);
+    overflow: hidden;
     opacity: 0;
     transition: opacity 0.15s ease;
     background: linear-gradient(160deg, #ffffff 0%, #eef5f6 60%, #d8ebec 100%);
   }
-  .stage { position:relative; overflow: visible; clip-path: inset(0); min-height:0; min-width:0; }
+  .stage { position:relative; overflow:hidden; min-height:0; min-width:0; }
   .screen {
     position:absolute; inset:0;
     padding: 28px 44px;
-    overflow-y: scroll;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
     overscroll-behavior: contain;
@@ -770,7 +769,33 @@ window.SCORM12 = (function(){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fit);
   else fit();
 
-  /* ── 2. CONTRAST FIXER — détecte les hovers blanc-sur-blanc ──
+  /* ── 2. TOUCH SCROLL — compense le scale CSS pour que le scroll tactile
+     fonctionne sur tous les écrans, quelle que soit la taille ── */
+  var _touchStartY = 0;
+  var _touchStartX = 0;
+  var _scrolling = false;
+  document.addEventListener('touchstart', function(e) {
+    _touchStartY = e.touches[0].clientY;
+    _touchStartX = e.touches[0].clientX;
+    _scrolling = false;
+  }, { passive: true });
+  document.addEventListener('touchmove', function(e) {
+    var screen = document.querySelector('.screen.active');
+    if (!screen) return;
+    var dy = _touchStartY - e.touches[0].clientY;
+    var dx = _touchStartX - e.touches[0].clientX;
+    if (!_scrolling && Math.abs(dy) < Math.abs(dx)) return;
+    _scrolling = true;
+    var scale = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shell-scale')) || 1;
+    screen.scrollTop += dy / scale;
+    _touchStartY = e.touches[0].clientY;
+    _touchStartX = e.touches[0].clientX;
+    if (screen.scrollTop > 0 && screen.scrollTop < screen.scrollHeight - screen.clientHeight) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  /* ── 3. CONTRAST FIXER — détecte les hovers blanc-sur-blanc ──
      Au mouseenter sur un élément cliquable, on lit le bg + couleur du texte
      APRÈS application du :hover. Si le ratio de contraste est trop faible
      (< 3:1, donc texte illisible), on ajoute la classe .lc-fix-dark ou
